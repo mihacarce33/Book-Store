@@ -1,0 +1,259 @@
+﻿@model IEnumerable<BookStore.Models.Book>
+
+@{
+    ViewBag.Title = "Index";
+    var genres = ViewBag.Genres as SelectList;
+    var selectedGenreId = Request.QueryString["genreId"];
+}
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<h2 class="text-center mb-4">Bookstore - 221144</h2>
+
+<div class="container mb-4">
+    <div class="row justify-content-between">
+        <div class="col-md-4">
+            <label for="genreFilter" class="form-label"><strong>Filter by Genre:</strong></label>
+            <select id="genreFilter" class="form-select" onchange="filterBooks()">
+                <option value="">Select Genre</option>
+                @foreach (var genre in genres)
+                {
+                    <option value="@genre.Value" @(genre.Value == selectedGenreId ? "selected" : "")>
+                        @genre.Text
+                    </option>
+                }
+            </select>
+        </div>
+
+        <!-- Price Sorting Section -->
+        <div class="col-md-4">
+            <label for="priceSort" class="form-label"><strong>Sort by Price:</strong></label>
+            <select id="priceSort" class="form-select" onchange="filterBooks()">
+                <option value="">Select Sorting</option>
+                <option value="asc" @(Request.QueryString["priceSort"] == "asc" ? "selected" : "")>Price: Low to High</option>
+                <option value="desc" @(Request.QueryString["priceSort"] == "desc" ? "selected" : "")>Price: High to Low</option>
+            </select>
+        </div>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col-md-4 text-end">
+                @Html.ActionLink("Create New Book", "Create", null, new { @class = "btn btn-success me-2" })
+                @Html.ActionLink("Fetch Books from API", "FetchFromApi", "Books", null, new { @class = "btn btn-outline-primary" })
+            </div>
+        }
+    </div>
+</div>
+
+<div class="container">
+    <div id="bookCards" class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col book-card">
+                <div class="card h-100 shadow-sm">
+                    <img src="@item.ImageURL" class="card-img-top" alt="Book Image" style="height: 250px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">@Html.ActionLink(item.Title, "Details", new { id = item.Id })</h5>
+                        <p class="card-text"><strong>Author:</strong> @(item.Author != null ? item.Author.Name : "N/A")</p>
+                        <p class="card-text"><strong>Genre:</strong> @(item.Genre != null ? item.Genre.Name : "N/A")</p>
+                        @if (item.Price != null)
+                        {
+                            <p class="card-text"><strong>Price:</strong> @item.Price $</p>
+                        }
+                        <p class="card-text text-truncate" title="@item.Description">@item.Description</p>
+                        <p class="card-text text-muted small">
+                            <strong>Stock:</strong>
+                            @if (item.Stock > 0)
+                            {
+                                <span class="badge bg-success">In Stock (Available: @item.Stock)</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Out of Stock</span>
+                            }
+                        </p>
+                        @if ((User.IsInRole("Admin") || User.IsInRole("User")) && item.Price != null && item.Stock > 0)
+                        {
+                            <div class="d-flex justify-content-between align-items-center">
+                                <input type="number" id="quantity-@item.Id" min="1" max="@item.Stock" value="1" class="form-control me-2" style="width: 80px;">
+                                <button type="button" class="btn btn-primary" onclick="addToCart(@item.Id)">Add to Cart</button>
+                            </div>
+                        }
+
+                    </div>
+                    @if (User.IsInRole("Admin"))
+                {
+                    <div class="card-footer d-flex justify-content-between">
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id }, new { @class = "btn btn-sm btn-outline-warning" })
+                        <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal(@item.Id, '@item.Title')">Delete</button>
+                    </div>
+                }
+                    
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the book: <strong id="bookTitle"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                <!-- Delete Form -->
+                @using (Html.BeginForm("Delete", "Books", FormMethod.Post, new { id = "deleteForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="bookIdToDelete" name="id" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="paginationControls" class="d-flex justify-content-center mt-4"></div>
+
+<script type="text/javascript">
+    function addToCart(bookId) {
+        var quantity = document.getElementById('quantity-' + bookId).value;
+
+        if (quantity && quantity > 0) {
+            window.location.href = '@Url.Action("AddToCart", "Books")/' + bookId + '?quantity=' + quantity;
+        } else {
+            alert("Please select a valid quantity.");
+        }
+    }
+
+    function filterByGenre() {
+        var genreId = $("#genreFilter").val();
+        var url = '@Url.Action("Index", "Books")';
+
+        if (genreId) {
+            url += '?genreId=' + genreId;
+        }
+
+        window.location.href = url;
+    }
+
+    function showDeleteModal(bookId, bookTitle) {
+    $("#bookTitle").text(bookTitle);
+    $("#bookIdToDelete").val(bookId);
+    $("#deleteModal").modal("show");
+}
+
+    $(document).ready(function () {
+        var itemsPerPage = 6;
+        var items = $(".book-card");
+        var totalItems = items.length;
+        var totalPages = Math.ceil(totalItems / itemsPerPage);
+        var currentPage = 1;
+
+        function showPage(page) {
+            items.hide();
+            var startIndex = (page - 1) * itemsPerPage;
+            var endIndex = startIndex + itemsPerPage;
+            items.slice(startIndex, endIndex).show();
+            currentPage = page;
+            renderPaginationControls();
+        }
+
+        function renderPaginationControls() {
+            const maxVisiblePages = 5; // Maximum visible page buttons
+            let paginationHtml = "";
+
+            if (currentPage > 1) {
+                paginationHtml += `<button class="btn btn-outline-primary me-2 pagination-button" data-page="${currentPage - 1}">Previous</button>`;
+            }
+
+            // Helper function to add a page button
+            const addPageButton = (page, isActive = false) => {
+                paginationHtml += `<button class="btn ${isActive ? 'btn-primary' : 'btn-outline-primary'} me-2 pagination-button" data-page="${page}">${page}</button>`;
+            };
+
+            if (totalPages <= maxVisiblePages + 2) {
+                // Display all pages if few enough
+                for (let i = 1; i <= totalPages; i++) {
+                    addPageButton(i, i === currentPage);
+                }
+            } else {
+                // Always show first page
+                addPageButton(1, currentPage === 1);
+
+                if (currentPage > 3) {
+                    paginationHtml += `<span class="me-2">...</span>`;
+                }
+
+                let startPage = Math.max(2, currentPage - 1);
+                let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+                // Adjust if near the beginning
+                if (currentPage <= 3) {
+                    endPage = 4;
+                }
+
+                // Adjust if near the end
+                if (currentPage >= totalPages - 2) {
+                    startPage = totalPages - 3;
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    if (i > 1 && i < totalPages) {
+                        addPageButton(i, i === currentPage);
+                    }
+                }
+
+                if (currentPage < totalPages - 2) {
+                    paginationHtml += `<span class="me-2">...</span>`;
+                }
+
+                // Always show last page
+                addPageButton(totalPages, currentPage === totalPages);
+            }
+
+            if (currentPage < totalPages) {
+                paginationHtml += `<button class="btn btn-outline-primary pagination-button" data-page="${currentPage + 1}">Next</button>`;
+            }
+
+            $("#paginationControls").html(paginationHtml);
+        }
+
+
+        $(document).on("click", ".pagination-button", function () {
+            var page = $(this).data("page");
+            showPage(page);
+        });
+
+        showPage(1);
+    });
+    function filterBooks() {
+        var genreId = $("#genreFilter").val();
+        var priceSort = $("#priceSort").val();
+        var url = '@Url.Action("Index", "Books")';
+
+        // Append query parameters based on selected filters
+        var params = [];
+        if (genreId) params.push("genreId=" + genreId);
+        if (priceSort) params.push("priceSort=" + priceSort);
+
+        if (params.length > 0) {
+            url += "?" + params.join("&");
+        }
+
+        window.location.href = url;
+    }
+</script>

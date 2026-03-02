@@ -1,0 +1,26 @@
+﻿@model BookStore.Models.Genre
+
+@{
+    ViewBag.Title = "Genre Details";
+}
+
+<h2 class="text-center mb-4">Genre Details</h2>
+
+<div class="container">
+    <div class="card shadow-sm p-4">
+        <h4 class="mb-4">Genre Information</h4>
+        <dl class="row">
+            <dt class="col-sm-3 fw-bold">
+                @Html.DisplayNameFor(model => model.Name)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+        </dl>
+
+        <div class="d-flex justify-content-end mt-4">
+            @Html.ActionLink("Edit Genre", "Edit", new { id = Model.Id }, new { @class = "btn btn-primary me-2" })
+            @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary" })
+        </div>
+    </div>
+</div>

@@ -1,0 +1,75 @@
+﻿@model BookStore.Models.Book
+
+@{
+    ViewBag.Title = "Book Details";
+}
+
+<div class="container my-5">
+    <h2 class="text-center mb-4">Book Details</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="@Model.ImageURL" class="img-fluid rounded-start" alt="Book Image" style="max-height: 350px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h3 class="card-title">@Model.Title</h3>
+                            @if (Model.Author != null)
+                            {
+                                <p class="text-muted"><strong>Author:</strong> @Model.Author.Name</p>
+
+                            }
+                            <p class="text-muted"><strong>Genre:</strong> @Model.Genre.Name</p>
+                            <p class="card-text mt-3"><strong>Description:</strong></p>
+                            <p>@Model.Description</p>
+                            <p class="text-muted"><strong>Price:</strong> @Model.Price $</p>
+                            <p class="text-muted"><strong>Stock Available:</strong> @Model.Stock</p>
+                            @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                            {
+                                <div class="d-flex align-items-center mt-4">
+                                    <input type="number" id="quantity-@Model.Id" min="1" max="@Model.Stock" value="1" class="form-control me-2" style="width: 80px;">
+                                    <button type="button" class="btn btn-primary" onclick="addToCart(@Model.Id)">Add to Cart</button>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-4">
+                @if (User.IsInRole("Admin"))
+                {
+                    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }, new { @class = "btn btn-outline-warning" })
+
+                }
+                @Html.ActionLink("Back to List", "Index", new { }, new { @class = "btn btn-outline-secondary" })
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function addToCart(bookId) {
+        var quantity = document.getElementById('quantity-' + bookId).value;
+
+        if (quantity && quantity > 0) {
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Books")',
+                type: 'POST',
+                data: { id: bookId, quantity: quantity },
+                success: function (response) {
+                    alert("Book added to cart successfully!");
+                    location.reload();
+                },
+                error: function () {
+                    alert("Failed to add the book to the cart. Please try again.");
+                }
+            });
+        } else {
+            alert("Please select a valid quantity.");
+        }
+    }
+</script>
+

@@ -1,0 +1,61 @@
+﻿@model IEnumerable<BookStore.Models.OrderItem>
+
+@{
+    ViewBag.Title = "Order Items";
+}
+
+<h2 class="text-center mb-4">Order Items</h2>
+
+<div class="container">
+    <div class="card shadow-sm p-4">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Book Title</th>
+                    <th>Customer ID</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Book.Title)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Order.CustomerId)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                        <td>$@Html.DisplayFor(modelItem => item.Price)</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.Id">
+                                Delete
+                            </button>
+
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade" id="deleteModal-@item.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@item.Id" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel-@item.Id">Confirm Delete</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete this order item for book "@item.Book.Title" with customer ID "@item.Order.CustomerId"?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            @using (Html.BeginForm("Delete", "OrderItems", new { id = item.Id }, FormMethod.Post))
+                                            {
+                                                <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
