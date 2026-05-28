@@ -1,76 +1,59 @@
-﻿@model BookStore.Models.RegisterViewModel
-
+﻿@model RegisterViewModel
 @{
-    ViewBag.Title = "Register";
+    ViewBag.Title = "Join the Registry";
 }
 
-<main aria-labelledby="title">
-    <h2 id="title">@ViewBag.Title.</h2>
+<div class="auth-wrapper" style="max-width: 520px;">
+    <div class="auth-card">
+        <h2>Join the registry</h2>
+        <p class="auth-subtitle">Patrons of Harrington &amp; Sons may reserve volumes and track their selections.</p>
 
-    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
-    {
-        @Html.AntiForgeryToken()
-        <h4>Create a new account.</h4>
-        <hr />
-        @Html.ValidationSummary("", new { @class = "text-danger" })
+        <form asp-controller="Account" asp-action="Register" method="post">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-        <div class="row">
-            @Html.LabelFor(m => m.FirstName, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control" })
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Address" class="form-label"></label>
+                    <input asp-for="Address" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="PhoneNumber" class="form-label"></label>
+                    <input asp-for="PhoneNumber" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
             </div>
-        </div>
 
-        <div class="row">
-            @Html.LabelFor(m => m.LastName, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(m => m.LastName, new { @class = "form-control" })
-            </div>
-        </div>
+            <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Submit application</button>
 
-        <div class="row">
-            @Html.LabelFor(m => m.Address, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(m => m.Address, new { @class = "form-control" })
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.PhoneNumber, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.Email, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.Password, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-            </div>
-        </div>
-
-        <div class="row">
-            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-md-2 col-form-label" })
-            <div class="col-md-10">
-                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="offset-md-2 col-md-10">
-                <input type="submit" value="Register" class="btn btn-outline-dark" />
-            </div>
-        </div>
-    }
-</main>
+            <p class="text-center mt-3 mb-0" style="font-style: italic;">
+                Already registered? <a asp-action="Login">Sign in</a>
+            </p>
+        </form>
+    </div>
+</div>
 
 @section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    <partial name="_ValidationScriptsPartial" />
 }

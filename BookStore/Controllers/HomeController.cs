@@ -1,27 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace BookStore.Controllers
+namespace BookStore.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    [AllowAnonymous]
+    public IActionResult About()
     {
-        [AllowAnonymous]
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your application description page.";
+        ViewBag.Message = "Your trusted destination for great books.";
+        return View();
+    }
 
-            return View();
-        }
+    [AllowAnonymous]
+    public IActionResult Contact()
+    {
+        ViewBag.Message = "We are here to help with orders, recommendations, and more.";
+        return View();
+    }
 
-        [AllowAnonymous]
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
+    [AllowAnonymous]
+    public IActionResult Error()
+    {
+        return View();
     }
 }

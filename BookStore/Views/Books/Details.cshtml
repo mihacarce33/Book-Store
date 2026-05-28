@@ -1,75 +1,94 @@
 ﻿@model BookStore.Models.Book
 
 @{
-    ViewBag.Title = "Book Details";
+    ViewBag.Title = Model.Title;
 }
 
-<div class="container my-5">
-    <h2 class="text-center mb-4">Book Details</h2>
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        <img src="@Model.ImageURL" class="img-fluid rounded-start" alt="Book Image" style="max-height: 350px; object-fit: cover;">
+<section class="page-hero page-hero-light page-hero-compact mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a asp-controller="Books" asp-action="Index">The Collection</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        </ol>
+    </nav>
+</section>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card book-detail-card">
+            <div class="row g-0">
+                <div class="col-md-5">
+                    <div class="detail-image-wrap">
+                        <img src="@Model.ImageURL" class="detail-image img-fluid" alt="@Model.Title">
                     </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h3 class="card-title">@Model.Title</h3>
-                            @if (Model.Author != null)
+                </div>
+                <div class="col-md-7">
+                    <div class="card-body p-4 p-lg-5">
+                        <h1 class="detail-title">@Model.Title</h1>
+                        @if (Model.Author != null)
+                        {
+                            <p class="detail-author">by @Model.Author.Name</p>
+                        }
+                        @if (Model.Genre != null)
+                        {
+                            <span class="detail-genre">@Model.Genre.Name</span>
+                        }
+                        <p class="section-label mt-4">From the catalogue</p>
+                        <div class="detail-prose">@Model.Description</div>
+                        @if (Model.Price != null)
+                        {
+                            <p class="detail-price">@string.Format("{0:C}", Model.Price)</p>
+                        }
+                        <p class="mb-4">
+                            @if (Model.Stock > 0)
                             {
-                                <p class="text-muted"><strong>Author:</strong> @Model.Author.Name</p>
-
+                                <span class="stock-note available">@Model.Stock volume@(Model.Stock == 1 ? "" : "s") presently in the shop</span>
                             }
-                            <p class="text-muted"><strong>Genre:</strong> @Model.Genre.Name</p>
-                            <p class="card-text mt-3"><strong>Description:</strong></p>
-                            <p>@Model.Description</p>
-                            <p class="text-muted"><strong>Price:</strong> @Model.Price $</p>
-                            <p class="text-muted"><strong>Stock Available:</strong> @Model.Stock</p>
-                            @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                            else
                             {
-                                <div class="d-flex align-items-center mt-4">
-                                    <input type="number" id="quantity-@Model.Id" min="1" max="@Model.Stock" value="1" class="form-control me-2" style="width: 80px;">
-                                    <button type="button" class="btn btn-primary" onclick="addToCart(@Model.Id)">Add to Cart</button>
-                                </div>
+                                <span class="stock-note unavailable">Not presently available — inquire at the desk</span>
                             }
-
-                        </div>
+                        </p>
+                        @if ((User.IsInRole("Admin") || User.IsInRole("User")) && Model.Price != null && Model.Stock > 0)
+                        {
+                            <div class="d-flex flex-wrap gap-3 align-items-center pt-2">
+                                <input type="number" id="quantity-@Model.Id" min="1" max="@Model.Stock" value="1" class="form-control quantity-input" aria-label="Quantity">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="addToCart(@Model.Id)">Add to your selection</button>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-between mt-4">
-                @if (User.IsInRole("Admin"))
-                {
-                    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }, new { @class = "btn btn-outline-warning" })
-
-                }
-                @Html.ActionLink("Back to List", "Index", new { }, new { @class = "btn btn-outline-secondary" })
-            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 justify-content-between mt-4">
+            <a asp-action="Index" class="btn btn-ghost">← Return to the collection</a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Revise listing</a>
+            }
         </div>
     </div>
 </div>
 
+@section scripts {
 <script type="text/javascript">
     function addToCart(bookId) {
         var quantity = document.getElementById('quantity-' + bookId).value;
-
         if (quantity && quantity > 0) {
             $.ajax({
-                url: '@Url.Action("AddToCart", "Books")',
+                url: '@Url.Action("AddToCartPost", "Books")',
                 type: 'POST',
                 data: { id: bookId, quantity: quantity },
-                success: function (response) {
-                    alert("Book added to cart successfully!");
-                    location.reload();
+                success: function () {
+                    window.location.href = '@Url.Action("ViewCart", "Books")';
                 },
                 error: function () {
-                    alert("Failed to add the book to the cart. Please try again.");
+                    alert("We could not add this volume. Kindly try again.");
                 }
             });
         } else {
-            alert("Please select a valid quantity.");
+            alert("Pray specify a quantity.");
         }
     }
 </script>
-
+}

@@ -1,65 +1,43 @@
-﻿@using BookStore.Models
-@model LoginViewModel
+﻿@model LoginViewModel
 @{
-    ViewBag.Title = "Log in";
+    ViewBag.Title = "Sign In";
 }
 
-<main aria-labelledby="title">
-    <h2 id="title">@ViewBag.Title.</h2>
-    <div class="row">
-        <div class="col-md-8">
-            <section id="loginForm">
-                @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { role = "form" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <h4>Use a local account to log in.</h4>
-                    <hr />
-                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                    <div class="row">
-                        @Html.LabelFor(m => m.Email, new { @class = "col-md-2 col-form-label" })
-                        <div class="col-md-10">
-                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="row">
-                        @Html.LabelFor(m => m.Password, new { @class = "col-md-2 col-form-label" })
-                        <div class="col-md-10">
-                            @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="offset-md-2 col-md-10">
-                            <div class="checkbox">
-                                @Html.CheckBoxFor(m => m.RememberMe)
-                                @Html.LabelFor(m => m.RememberMe)
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="offset-md-2 col-md-10">
-                            <input type="submit" value="Log in" class="btn btn-outline-dark" />
-                        </div>
-                    </div>
-                    <p>
-                        @Html.ActionLink("Register as a new user", "Register")
-                    </p>
-                    @* Enable this once you have account confirmation enabled for password reset functionality
-                        <p>
-                            @Html.ActionLink("Forgot your password?", "ForgotPassword")
-                        </p>*@
-                }
-            </section>
-        </div>
-        <div class="col-md-4">
-            <section id="socialLoginForm">
-                @Html.Partial("_ExternalLoginsListPartial", new ExternalLoginListViewModel { ReturnUrl = ViewBag.ReturnUrl })
-            </section>
-        </div>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p class="auth-subtitle">Sign in to reserve volumes and view your selection.</p>
+
+        <form asp-controller="Account" asp-action="Login" method="post">
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" placeholder="your correspondence address" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4 form-check">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label" style="font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: 0.95rem; font-style: italic;"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">Enter</button>
+
+            <p class="text-center mb-0" style="font-style: italic;">
+                New to the house? <a asp-action="Register">Join the registry</a>
+            </p>
+        </form>
     </div>
-</main>
+</div>
 
 @section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    <partial name="_ValidationScriptsPartial" />
 }

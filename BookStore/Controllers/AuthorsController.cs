@@ -1,197 +1,167 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web;
-using System.Web.Mvc;
+﻿using BookStore.Data;
 using BookStore.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
-namespace BookStore.Controllers
+namespace BookStore.Controllers;
+
+public class AuthorsController : Controller
 {
-    public class AuthorsController : Controller
+    private readonly ApplicationDbContext _db;
+
+    public AuthorsController(ApplicationDbContext db)
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        _db = db;
+    }
 
-        // GET: Authors
-        [AllowAnonymous]
-        public ActionResult Index()
+    [AllowAnonymous]
+    public async Task<IActionResult> Index()
+    {
+        return View(await _db.Authors.OrderBy(a => a.Name).ToListAsync());
+    }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
         {
-            return View(db.Authors.ToList());
+            return BadRequest();
         }
 
-        // GET: Authors/Details/5
-        [AllowAnonymous]
-        public ActionResult Details(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Author author = db.Authors.Include(a => a.Books).FirstOrDefault(a => a.Id == id);
-            if (author == null)
-            {
-                return HttpNotFound();
-            }
+        var author = await _db.Authors
+            .Include(a => a.Books)
+            .FirstOrDefaultAsync(a => a.Id == id);
 
-            ViewBag.Books = new SelectList(db.Books.Where(b => b.Author == null), "Id", "Title");
-            return View(author);
+        if (author == null)
+        {
+            return NotFound();
         }
 
-        // GET: Authors/Create
-        [Authorize(Roles = "Admin")]
-        public ActionResult Create()
+        ViewBag.Books = new SelectList(_db.Books.Where(b => b.AuthorId == null), "Id", "Title");
+        return View(author);
+    }
+
+    [Authorize(Roles = "Admin")]
+    public IActionResult Create() => View();
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([Bind("Id,ImageUrl,Name,Biography")] Author author)
+    {
+        if (ModelState.IsValid)
         {
-            return View();
+            _db.Authors.Add(author);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // POST: Authors/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,ImageUrl,Name,Biography")] Author author)
-        {
-            if (ModelState.IsValid)
-            {
-                db.Authors.Add(author);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+        return View(author);
+    }
 
-            return View(author);
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+        {
+            return BadRequest();
         }
 
-        // GET: Authors/Edit/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult Edit(int? id)
+        var author = await _db.Authors.FindAsync(id);
+        if (author == null)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Author author = db.Authors.Find(id);
-            if (author == null)
-            {
-                return HttpNotFound();
-            }
-            return View(author);
+            return NotFound();
         }
 
-        // POST: Authors/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,ImageUrl,Name,Biography")] Author author)
+        return View(author);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,ImageUrl,Name,Biography")] Author author)
+    {
+        if (id != author.Id)
         {
-            if (ModelState.IsValid)
-            {
-                db.Entry(author).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(author);
+            return NotFound();
         }
 
-        // GET: Authors/Delete/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult Delete(int? id)
+        if (ModelState.IsValid)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Author author = db.Authors.Find(id);
-            if (author == null)
-            {
-                return HttpNotFound();
-            }
-            return View(author);
+            _db.Update(author);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // POST: Authors/Delete/5
-        [Authorize(Roles = "Admin")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        return View(author);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var author = await _db.Authors.FindAsync(id);
+        if (author != null)
         {
-            Author author = db.Authors.Find(id);
-            db.Authors.Remove(author);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            _db.Authors.Remove(author);
+            await _db.SaveChangesAsync();
         }
 
-        // GET: Authors/AddBook/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult AddBook(int? id)
+        return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddBook(int? id)
+    {
+        if (id == null)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            Author author = db.Authors.Find(id);
-            if (author == null)
-            {
-                return HttpNotFound();
-            }
-
-            ViewBag.Books = new SelectList(db.Books.Where(b => b.Author == null), "Id", "Title");
-            return View(author);
+            return BadRequest();
         }
 
-        // POST: Authors/AddBook/5
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult AddBook(int id, int bookId)
+        var author = await _db.Authors.FindAsync(id);
+        if (author == null)
         {
-            Author author = db.Authors.Find(id);
-            Book book = db.Books.Find(bookId);
-
-            if (author == null || book == null)
-            {
-                return HttpNotFound();
-            }
-
-            book.Author = author;
-            db.SaveChanges();
-
-            return RedirectToAction("Details", new { id = author.Id });
+            return NotFound();
         }
 
-        // POST: Authors/RemoveBook/5
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult RemoveBook(int id, int bookId)
+        ViewBag.Books = new SelectList(_db.Books.Where(b => b.AuthorId == null), "Id", "Title");
+        return View(author);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddBook(int id, int bookId)
+    {
+        var author = await _db.Authors.FindAsync(id);
+        var book = await _db.Books.FindAsync(bookId);
+        if (author == null || book == null)
         {
-            Author author = db.Authors.Find(id);
-            Book book = db.Books.Find(bookId);
-
-            if (author == null || book == null)
-            {
-                return HttpNotFound();
-            }
-
-            book.AuthorId = null;
-            db.SaveChanges();
-
-            return RedirectToAction("Details", new { id = author.Id });
+            return NotFound();
         }
 
+        book.AuthorId = author.Id;
+        await _db.SaveChangesAsync();
+        return RedirectToAction(nameof(Details), new { id = author.Id });
+    }
 
-        protected override void Dispose(bool disposing)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RemoveBook(int id, int bookId)
+    {
+        var author = await _db.Authors.FindAsync(id);
+        var book = await _db.Books.FindAsync(bookId);
+        if (author == null || book == null)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return NotFound();
         }
+
+        book.AuthorId = null;
+        await _db.SaveChangesAsync();
+        return RedirectToAction(nameof(Details), new { id = author.Id });
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BookStore.Models
 {
@@ -16,7 +11,7 @@ namespace BookStore.Models
         public DateTime OrderDate { get; set; } = DateTime.Now;
 
         [Required]
-        public string CustomerId { get; set; }  
+        public string CustomerId { get; set; } = string.Empty;
 
         [Required]
         public float TotalAmount { get; set; }

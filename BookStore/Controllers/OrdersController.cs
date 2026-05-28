@@ -1,61 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web;
-using System.Web.Mvc;
+﻿using BookStore.Data;
 using BookStore.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace BookStore.Controllers
+namespace BookStore.Controllers;
+
+[Authorize(Roles = "Admin")]
+public class OrdersController : Controller
 {
-    public class OrdersController : Controller
+    private readonly ApplicationDbContext _db;
+
+    public OrdersController(ApplicationDbContext db)
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        _db = db;
+    }
 
-        // GET: Orders
-        [Authorize(Roles = "Admin")]
-        public ActionResult Index()
+    public async Task<IActionResult> Index()
+    {
+        return View(await _db.Orders
+            .Include(o => o.OrderItems)
+            .OrderByDescending(o => o.OrderDate)
+            .ToListAsync());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var order = await _db.Orders.FindAsync(id);
+        if (order != null)
         {
-            return View(db.Orders.ToList());
+            _db.Orders.Remove(order);
+            await _db.SaveChangesAsync();
         }
 
-        // GET: Orders/Delete/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Order order = db.Orders.Find(id);
-            if (order == null)
-            {
-                return HttpNotFound();
-            }
-            return View(order);
-        }
-
-        // POST: Orders/Delete/5
-        [Authorize(Roles = "Admin")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
-        {
-            Order order = db.Orders.Find(id);
-            db.Orders.Remove(order);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        return RedirectToAction(nameof(Index));
     }
 }

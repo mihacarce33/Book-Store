@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BookStore.Models
 {
@@ -11,19 +7,19 @@ namespace BookStore.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public string Title { get; set; }
-        public string ImageURL { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? ImageURL { get; set; }
 
         public int? AuthorId { get; set; }
-        public virtual Author Author { get; set; }
+        public virtual Author? Author { get; set; }
 
         [Required]
         public int? GenreId { get; set; }
-        public virtual Genre Genre { get; set; }
+        public virtual Genre? Genre { get; set; }
 
         public float? Price { get; set; }
         [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         [Required]
         public int Stock { get; set; }
     }

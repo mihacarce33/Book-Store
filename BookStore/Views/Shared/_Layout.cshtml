@@ -1,101 +1,88 @@
-﻿<!DOCTYPE html>
+﻿@inject ICartService CartService
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - BookStore</title>
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <style>
-        /* Custom navbar styling */
-        .navbar {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-brand, .nav-link {
-            font-weight: bold;
-        }
-
-            .nav-link:hover {
-                text-decoration: underline;
-            }
-        /* Footer styling */
-        footer {
-            background-color: #f8f9fa;
-            padding: 1rem 0;
-            text-align: center;
-            color: #6c757d;
-        }
-        /* Cart icon styling */
-        .fa-shopping-cart {
-            font-size: 1.2rem;
-            margin-right: 0.3rem;
-        }
-        /* Body content padding */
-        .body-content {
-            padding: 2rem 0;
-        }
-    </style>
+    <title>@ViewBag.Title — Harrington & Sons</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <!-- Logo and Brand Link -->
-            <a href="@Url.Action("Index", "Books")" class="navbar-brand d-flex align-items-center">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6IugSOE4YFNfRKis-N_gkVzo3ai0E2GgLfQ&s" alt="BookStore Logo" class="me-2" style="height: 40px; width: 40px; object-fit: cover; border-radius: 50%;">
-                <span>BookStore</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">@Html.ActionLink("Authors", "Index", "Authors", new { area = "" }, new { @class = "nav-link" })</li>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <li class="nav-item">@Html.ActionLink("Genres", "Index", "Genres", new { area = "" }, new { @class = "nav-link" })</li>
-                        <li class="nav-item">@Html.ActionLink("Orders", "Index", "Orders", new { area = "" }, new { @class = "nav-link" })</li>
-                        <li class="nav-item">@Html.ActionLink("Order Items", "Index", "OrderItems", new { area = "" }, new { @class = "nav-link" })</li>
-                        <li class="nav-item">@Html.ActionLink("Users", "Index", "Account/AddUserToRole", new { area = "" }, new { @class = "nav-link" })</li>
-                    }
-                    <li class="nav-item">@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li class="nav-item">@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                </ul>
-
-                @if (User.IsInRole("Admin") || User.IsInRole("User"))
-                {
-                    <!-- Cart Icon with Count -->
-                    var cart = Session["Cart"] as List<BookStore.Models.CartItem>;
-                    int cartCount = cart != null ? cart.Sum(item => item.Quantity) : 0;
-
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a href="@Url.Action("ViewCart", "Books")" class="nav-link text-white">
-                                <i class="fa fa-shopping-cart"></i> Cart (@cartCount)
-                            </a>
-                        </li>
+    <header class="site-masthead">
+        <p class="masthead-ornament mb-0">Rare &amp; Fine Editions · Est. 1892</p>
+        <nav class="navbar navbar-expand-lg site-navbar">
+            <div class="container">
+                <a asp-controller="Books" asp-action="Index" class="navbar-brand">
+                    Harrington <span style="font-weight:400">&amp;</span> Sons
+                    <span class="brand-subtitle">Booksellers · Bindery · Reading Room</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Books" asp-action="Index">The Collection</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Authors" asp-action="Index">Authors</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="About">Our History</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Contact">Visit Us</a></li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Genres" asp-action="Index">Genres</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Orders" asp-action="Index">Ledger</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="AddUserToRole">Patrons</a></li>
+                        }
                     </ul>
-                }
 
-                <!-- Login/Logout Partial -->
-                @Html.Partial("_LoginPartial")
+                    <ul class="navbar-nav align-items-lg-center">
+                        @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                        {
+                            var cartCount = CartService.GetItemCount();
+                            <li class="nav-item">
+                                <a class="nav-link nav-selection" asp-controller="Books" asp-action="ViewCart">
+                                    Your Selection@if (cartCount > 0) { <span class="cart-count">(@cartCount)</span> }
+                                </a>
+                            </li>
+                        }
+                        <partial name="_LoginPartial" />
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-
-    <div class="container body-content">
+    <main class="container body-content">
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                @TempData["Message"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - BookStore</p>
-        </footer>
-    </div>
+    </main>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- For icons -->
-    @RenderSection("scripts", required: false)
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row align-items-start g-4">
+                <div class="col-md-5 text-center text-md-start">
+                    <span class="footer-brand">Harrington &amp; Sons</span>
+                    <p class="footer-tagline mb-0">Where every volume carries the weight of a story well told.</p>
+                    <span class="footer-est">Established MDCCCXCII</span>
+                </div>
+                <div class="col-md-7 text-center text-md-end">
+                    <a asp-controller="Books" asp-action="Index" class="d-inline-block me-3 mb-2">The Collection</a>
+                    <a asp-controller="Home" asp-action="About" class="d-inline-block me-3 mb-2">Our History</a>
+                    <a asp-controller="Home" asp-action="Contact" class="d-inline-block mb-2">Visit Us</a>
+                </div>
+            </div>
+            <hr />
+            <p class="copyright mb-0">&copy; @DateTime.Now.Year Harrington &amp; Sons · All rights reserved</p>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("scripts", required: false)
 </body>
 </html>

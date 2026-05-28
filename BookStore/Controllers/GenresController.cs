@@ -1,135 +1,104 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web;
-using System.Web.Mvc;
+﻿using BookStore.Data;
 using BookStore.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace BookStore.Controllers
+namespace BookStore.Controllers;
+
+[Authorize(Roles = "Admin")]
+public class GenresController : Controller
 {
-    public class GenresController : Controller
+    private readonly ApplicationDbContext _db;
+
+    public GenresController(ApplicationDbContext db)
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        _db = db;
+    }
 
-        // GET: Genres
-        [Authorize(Roles = "Admin")]
-        public ActionResult Index()
+    public async Task<IActionResult> Index()
+    {
+        return View(await _db.Genres.OrderBy(g => g.Name).ToListAsync());
+    }
+
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
         {
-            return View(db.Genres.ToList());
+            return BadRequest();
         }
 
-        // GET: Genres/Details/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult Details(int? id)
+        var genre = await _db.Genres.FindAsync(id);
+        if (genre == null)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Genre genre = db.Genres.Find(id);
-            if (genre == null)
-            {
-                return HttpNotFound();
-            }
-            return View(genre);
+            return NotFound();
         }
 
-        // GET: Genres/Create
-        [Authorize(Roles = "Admin")]
-        public ActionResult Create()
+        return View(genre);
+    }
+
+    public IActionResult Create() => View();
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("Id,Name")] Genre genre)
+    {
+        if (ModelState.IsValid)
         {
-            return View();
+            _db.Genres.Add(genre);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // POST: Genres/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Name")] Genre genre)
-        {
-            if (ModelState.IsValid)
-            {
-                db.Genres.Add(genre);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+        return View(genre);
+    }
 
-            return View(genre);
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+        {
+            return BadRequest();
         }
 
-        // GET: Genres/Edit/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult Edit(int? id)
+        var genre = await _db.Genres.FindAsync(id);
+        if (genre == null)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Genre genre = db.Genres.Find(id);
-            if (genre == null)
-            {
-                return HttpNotFound();
-            }
-            return View(genre);
+            return NotFound();
         }
 
-        // POST: Genres/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Genre genre)
+        return View(genre);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Genre genre)
+    {
+        if (id != genre.Id)
         {
-            if (ModelState.IsValid)
-            {
-                db.Entry(genre).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(genre);
+            return NotFound();
         }
 
-        // GET: Genres/Delete/5
-        [Authorize(Roles = "Admin")]
-        public ActionResult Delete(int? id)
+        if (ModelState.IsValid)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Genre genre = db.Genres.Find(id);
-            if (genre == null)
-            {
-                return HttpNotFound();
-            }
-            return View(genre);
+            _db.Update(genre);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // POST: Genres/Delete/5
-        [Authorize(Roles = "Admin")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        return View(genre);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var genre = await _db.Genres.FindAsync(id);
+        if (genre != null)
         {
-            Genre genre = db.Genres.Find(id);
-            db.Genres.Remove(genre);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            _db.Genres.Remove(genre);
+            await _db.SaveChangesAsync();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        return RedirectToAction(nameof(Index));
     }
 }

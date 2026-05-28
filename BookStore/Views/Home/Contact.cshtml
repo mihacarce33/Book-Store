@@ -1,50 +1,37 @@
 ﻿@{
-    ViewBag.Title = "Contact Us";
-    ViewBag.Message = "Get in touch with us for support or inquiries.";
+    ViewBag.Title = "Visit Us";
 }
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - BookStore</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
-</head>
-<main aria-labelledby="title">
-    <!-- Contact Header Section -->
-    <section class="bg-light p-5 rounded shadow-sm mb-4">
-        <h2 id="title" class="text-center display-4 fw-bold mb-3">@ViewBag.Title</h2>
-        <h3 class="text-center text-muted">@ViewBag.Message</h3>
-    </section>
 
-    <!-- Contact Information Section -->
-    <section class="container">
-        <div class="row">
-            <!-- Contact Info Column -->
-            <div class="col-md-6">
-                <h4 class="fw-bold">Contact Information</h4>
+<section class="page-hero">
+    <h1 class="display-5">Visit Us</h1>
+    <p class="hero-lead">The shop door is heavy oak for a reason — what lies within is worth the pause.</p>
+</section>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="content-section h-100">
+            <h3>At the desk</h3>
+            <div class="contact-info-card mt-3">
                 <address>
-                    <strong>Name:</strong><br />
-                    Mihail<br />
-                    <strong>Surame:</strong><br />
-                    Petrov
+                    <p style="font-family: var(--font-caps); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.25rem;">Proprietor</p>
+                    <p style="font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 1.5rem;">Blackwood & Co. Books</p>
+
+                    <p style="font-family: var(--font-caps); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.25rem;">Registry</p>
+                    <p style="margin-bottom: 0;">Patron no. 123456</p>
                 </address>
             </div>
-
-            <!-- Additional Info Column -->
-            <div class="col-md-6">
-                <h4 class="fw-bold">Additional Info</h4>
-                <p><strong>Student Index:</strong> 221144</p>
-                <p>
-                    <strong>Follow Us:</strong><br />
-                    <a href="https://www.instagram.com/petrovmihail10" target="_blank" class="btn btn-outline-primary btn-sm">
-                        <i class="fab fa-instagram"></i> petrovmihail10
-                    </a>
-
-                </p>
-            </div>
         </div>
-    </section>
-</main>
-
-<!-- FontAwesome for Instagram Icon -->
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    </div>
+    <div class="col-md-6">
+        <div class="content-section h-100">
+            <h3>Correspondence</h3>
+            <p class="text-muted" style="font-style: italic;">
+                For inquiries regarding availability, condition reports, or holding a volume,
+                you may reach us through the usual channels.
+            </p>
+            <a target="_blank" rel="noopener" class="btn btn-outline-primary mt-2">
+                Blackwood & Co. Books
+            </a>
+        </div>
+    </div>
+</div>

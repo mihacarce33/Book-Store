@@ -1,22 +1,20 @@
-﻿@using Microsoft.AspNet.Identity
-@if (Request.IsAuthenticated)
-{
-    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
-    {
-    @Html.AntiForgeryToken()
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<BookStore.Data.ApplicationUser> SignInManager
 
-    <ul class="navbar-nav navbar-right">
-        <li>
-            @Html.ActionLink("Hello " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class="nav-link" })
-        </li>
-        <li><a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
-    </ul>
-    }
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item">
+        <span class="nav-link">@User.Identity?.Name</span>
+    </li>
+    <li class="nav-item">
+        <form asp-controller="Account" asp-action="LogOff" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="nav-link btn btn-link border-0 p-0" style="font-family: var(--font-body); font-style: italic; letter-spacing: 0.05em; text-transform: none; font-size: 0.95rem;">Depart</button>
+        </form>
+    </li>
 }
 else
 {
-    <ul class="navbar-nav navbar-right">
-        <li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class="nav-link" })</li>
-        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class="nav-link" })</li>
-    </ul>
+    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Sign In</a></li>
+    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Register">Join the Registry</a></li>
 }
